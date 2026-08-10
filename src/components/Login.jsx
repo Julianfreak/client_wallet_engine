@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { loginUser } from '../services/api';
 
-export default function Login({ onSwitchToRegister }) {
+export default function Login({onLoginSuccess, onSwitchToRegister }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -13,10 +13,9 @@ export default function Login({ onSwitchToRegister }) {
     setLoading(true);
 
     try {
-      const data = await loginUser({ email, password });
+      await loginUser({ email, password });
       alert('¡Inicio de sesión exitoso!');
-      console.log('Token recibido:', data.token);
-      // Aquí guardarás el token en localStorage o estado global próximamente
+      onLoginSuccess();
     } catch (err) {
       setError(err.message);
     } finally {
