@@ -34,3 +34,23 @@ export const registerUser = async (userData) => {
 
   return response.json();
 };
+
+// Función para registrar una nueva transacción
+export async function createTransaction(transactionData) {
+  const response = await fetch('http://localhost:8082/transactions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      // Si usas tokens JWT o sesiones, puedes agregarlos aquí en el futuro:
+      // 'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify(transactionData),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Error al procesar la transacción');
+  }
+
+  return await response.json();
+}
