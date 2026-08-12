@@ -54,3 +54,30 @@ export async function createTransaction(transactionData) {
 
   return await response.json();
 }
+// Obtener el saldo y datos generales del dashboard
+export async function getDashboardData() {
+  const response = await fetch('http://localhost:8082/dashboard', {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    throw new Error('No se pudo cargar la información del dashboard');
+  }
+
+  return await response.json();
+}
+
+// Obtener el historial de movimientos
+export async function getTransactions() {
+  const response = await fetch('http://localhost:8082/transactions', {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    throw new Error('No se pudo cargar el historial de movimientos');
+  }
+
+  return await response.json();
+}
