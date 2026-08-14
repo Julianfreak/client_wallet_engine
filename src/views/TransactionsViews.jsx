@@ -1,98 +1,110 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createTransaction } from '../services/api';
 
 export default function TransactionsView() {
-  const [amount, setAmount] = useState('');
-  const [type, setType] = useState('deposit'); // 'deposit' o 'transfer'
-  const [description, setDescription] = useState('');
+  // 1. Estado estructurado y controlado profesionalmente
+  const [formData, setFormData] = useState({
+    fromAccountId: 'A1', // Idealmente cargado dinámicamente de las cuentas del usuario
+    toAccountId: 'A2',
+    amount: ''
+  });
+  
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ text: '', type: '' });
+  const [feedback, setFeedback] = useState({ type: '', message: '' });
+
+  // Manejador genérico para inputs (Evita repetir funciones de cambio)
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFeedback({ type: '', message: '' });
     setLoading(true);
-    setMessage({ text: '', type: '' });
 
     try {
+      // 2. Inyección de datos limpios y tipados hacia la capa de servicios
       await createTransaction({
-        amount: parseFloat(amount),
-        type,
-        description,
+        fromAccountId: formData.fromAccountId,
+        toAccountId: formData.toAccountId,
+        amount: parseFloat(formData.amount)
       });
 
-      setMessage({ text: '¡Transacción realizada con éxito!', type: 'success' });
-      // Limpiar formulario
-      setAmount('');
-      setDescription('');
+      setFeedback({ type: 'success', message: '¡Transferencia procesada con éxito!' });
+      setFormData(prev => ({ ...prev, amount: '' })); // Limpiamos solo el monto
     } catch (err) {
-      setMessage({ text: err.message || 'Hubo un error al realizar la transacción', type: 'error' });
+      setFeedback({ type: 'error', message: err.message });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-white">Realizar Movimiento</h2>
-      
-      <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-lg max-w-xl">
-        {message.text && (
-          <div className={`mb-6 p-3 rounded-lg text-sm border ${
-            message.type === 'success' 
-              ? 'bg-green-500/10 border-green-500 text-green-400' 
-              : 'bg-red-500/10 border-red-500 text-red-400'
-          }`}>
-            {message.text}
-          </div>
-        )}
+    <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 shadow-lg max-w-lg mx-auto">
+      <h2 className="text-xl font-bold text-white mb-4">Nueva Transferencia</h2>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Tipo de Movimiento</label>
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value)}
-              className="w-full rounded-lg bg-gray-900 border border-gray-700 px-4 py-2 text-white focus:border-blue-500 focus:outline-none"
-            >
-              <option value="deposit">Depósito / Recarga</option>
-              <option value="transfer">Transferencia</option>
-            </select>
-          </div>
+      {feedback.message && (
+        <div className={`p-3 rounded-lg text-sm mb-4 ${
+          feedback.type === 'error' ? 'bg-red-500/10 border border-red-500 text-red-400' : 'bg-green-500/10 border border-green-500 text-green-400'
+        }`}>
+          {feedback.message}
+        </div>
+      )}
 
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Monto ($ COP)</label>
-            <input
-              type="number"
-              step="0.01"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              required
-              min="0.01"
-              className="w-full rounded-lg bg-gray-900 border border-gray-700 px-4 py-2 text-white focus:border-blue-500 focus:outline-none"
-              placeholder="0.00"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">Descripción o Concepto</label>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full rounded-lg bg-gray-900 border border-gray-700 px-4 py-2 text-white focus:border-blue-500 focus:outline-none"
-              placeholder="Ej. Pago de servicios, recarga inicial..."
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-lg bg-blue-600 py-2.5 font-semibold text-white hover:bg-blue-500 transition-colors disabled:opacity-50"
+      <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Selección dinámica de cuenta origen */}
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Cuenta Origen</label>
+          <select 
+            name="fromAccountId"
+            value={formData.fromAccountId} 
+            onChange={handleChange}
+            className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white text-sm"
           >
-            {loading ? 'Procesando transacción...' : 'Confirmar Movimiento'}
-          </button>
-        </form>
-      </div>
+            <option value="A1">Cuenta Principal (A1)</option>
+          </select>
+        </div>
+
+        {/* Selección dinámica de cuenta destino */}
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Cuenta Destino</label>
+          <select 
+            name="toAccountId"
+            value={formData.toAccountId} 
+            onChange={handleChange}
+            className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white text-sm"
+          >
+            <option value="A2">Mercado Libre (A2)</option>
+          </select>
+        </div>
+
+        {/* Monto de la transferencia */}
+        <div>
+          <label className="block text-sm font-medium text-gray-300 mb-1">Monto (COP)</label>
+          <input
+            type="number"
+            step="0.01"
+            name="amount"
+            placeholder="0.00"
+            value={formData.amount}
+            onChange={handleChange}
+            className="w-full bg-gray-900 border border-gray-700 rounded-lg p-2.5 text-white text-sm"
+            required
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full bg-blue-600 hover:bg-blue-500 text-white font-medium py-2.5 rounded-lg transition-colors disabled:opacity-50"
+        >
+          {loading ? 'Procesando...' : 'Confirmar Transferencia'}
+        </button>
+      </form>
     </div>
   );
 }

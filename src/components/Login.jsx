@@ -14,7 +14,7 @@ export default function Login({onLoginSuccess, onSwitchToRegister }) {
 
     try {
       await loginUser({ email, password });
-      alert('¡Inicio de sesión exitoso!');
+      //alert('¡Inicio de sesión exitoso!');
       onLoginSuccess();
     } catch (err) {
       setError(err.message);

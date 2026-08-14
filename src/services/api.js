@@ -39,17 +39,18 @@ export const registerUser = async (userData) => {
 export async function createTransaction(transactionData) {
   const response = await fetch('http://localhost:8082/transactions', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      // Si usas tokens JWT o sesiones, puedes agregarlos aquí en el futuro:
-      // 'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify(transactionData),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from_account_id: transactionData.fromAccountId || "A1",
+      to_account_id: transactionData.toAccountId || "A2",
+      amount: Number(transactionData.amount)
+    }),
   });
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || 'Error al procesar la transacción');
+    // Nota: Tu backend responde con la propiedad "error", no "message"
+    throw new Error(errorData.error || 'Error al procesar la transacción');
   }
 
   return await response.json();
