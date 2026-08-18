@@ -68,16 +68,24 @@ export default function DashboardView() {
                 </tr>
               </thead>
               <tbody>
-                {transactions.map((tx, index) => (
-                  <tr key={index} className="border-b border-gray-700/50 hover:bg-gray-700/20">
-                    <td className="py-3 px-4 font-medium text-white capitalize">{tx.type}</td>
-                    <td className="py-3 px-4">{tx.description || 'Sin descripción'}</td>
-                    <td className={`py-3 px-4 font-semibold ${tx.type === 'deposit' ? 'text-green-400' : 'text-red-400'}`}>
-                      {tx.type === 'deposit' ? '+' : '-'}${Number(tx.amount).toLocaleString('es-CO', { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="py-3 px-4 text-gray-400">{new Date(tx.created_at || Date.now()).toLocaleDateString()}</td>
-                  </tr>
-                ))}
+                {transactions.map((tx, index) => {
+                  // Manejo seguro de propiedades por si vienen en minúscula o mayúscula desde Go
+                  const txType = tx.type || tx.Type || 'transfer';
+                  const txDesc = tx.description || tx.Description || 'Sin descripción';
+                  const txAmount = Number(tx.amount ?? tx.Amount ?? 0);
+                  const txDate = tx.created_at || tx.CreatedAt || Date.now();
+
+                  return (
+                    <tr key={index} className="border-b border-gray-700/50 hover:bg-gray-700/20">
+                      <td className="py-3 px-4 font-medium text-white capitalize">{txType}</td>
+                      <td className="py-3 px-4">{txDesc}</td>
+                      <td className={`py-3 px-4 font-semibold ${txType === 'deposit' ? 'text-green-400' : 'text-red-400'}`}>
+                        {txType === 'deposit' ? '+' : '-'}${txAmount.toLocaleString('es-CO', { minimumFractionDigits: 2 })}
+                      </td>
+                      <td className="py-3 px-4 text-gray-400">{new Date(txDate).toLocaleDateString()}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
