@@ -1,22 +1,24 @@
 // Configuración base para la comunicación con la API de Go (wallet-engine)
 const API_URL = 'http://localhost:8082';
 
-export const loginUser = async (credentials) => {
-  const response = await fetch(`${API_URL}/login`, {
+export async function loginUser() {
+  const response = await fetch('http://localhost:8082/login', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(credentials),
   });
-
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || 'Error al iniciar sesión');
+  const data = await response.json();
+  if (data.token) {
+    localStorage.setItem('jwt_token', data.token);
   }
+}
 
-  return response.json();
-};
+// Función auxiliar para obtener el header con el token
+function getAuthHeaders() {
+  const token = localStorage.getItem('jwt_token');
+  return {
+    'Content-Type': 'application/json',
+    'Authorization': token ? `Bearer ${token}` : ''
+  };
+}
 
 export const registerUser = async (userData) => {
   const response = await fetch(`${API_URL}/register`, {
@@ -39,7 +41,7 @@ export const registerUser = async (userData) => {
 export async function createTransaction(transactionData) {
   const response = await fetch('http://localhost:8082/transactions', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(),
     body: JSON.stringify({
       from_account_id: transactionData.fromAccountId || "A1",
       to_account_id: transactionData.toAccountId || "A2",
@@ -59,7 +61,7 @@ export async function createTransaction(transactionData) {
 export async function getDashboardData() {
   const response = await fetch('http://localhost:8082/dashboard', {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(),
   });
 
   if (!response.ok) {
@@ -73,7 +75,7 @@ export async function getDashboardData() {
 export async function getTransactions() {
   const response = await fetch('http://localhost:8082/transactions', {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: getAuthHeaders(),
   });
 
   if (!response.ok) {
